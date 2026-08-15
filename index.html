@@ -172,10 +172,8 @@
             <h2 class="highlight-text">বঙ্গবল্টু গেমে আপনাকে স্বাগতম</h2>
             <p class="highlight-text">গেমটি ডেভেলপমেন্ট করছে শেখ মেহেদী বঙ্গবল্টুর পারসোনাল সৈনিক</p>
             
-            <!-- Play Now বাটন (শুধু গেম ওপেন করবে) -->
-            <a id="playNowBtn" href="https://emamulk63-design.github.io/Sheikh_Mehedi-/">
-                ▶ Play Now
-            </a>
+            <!-- Play Now বাটন (শুধু গেম ওপেন করবে - সাথে সাথে) -->
+            <button id="playNowBtn">▶ Play Now</button>
         </div>
     </div>
 
@@ -197,12 +195,13 @@
             });
         }
 
-        // ====== অডিও অটোপ্লে ======
+        // ====== অডিও অটোপ্লে + পপআপ কন্ট্রোল ======
         document.addEventListener("DOMContentLoaded", function() {
             const audio = document.getElementById("welcomeAudio");
             const popup = document.getElementById("welcomePopup");
+            const playBtn = document.getElementById("playNowBtn");
 
-            // Web Audio API দিয়ে অডিও কনটেক্সট আনলক
+            // 1. অডিও অটোপ্লে (Web Audio API)
             function unlockAudioContext() {
                 const context = new (window.AudioContext || window.webkitAudioContext)();
                 if (context.state === 'suspended') {
@@ -215,7 +214,7 @@
                 }
             }
 
-            // পেজ লোড হতেই অডিও প্লে করার চেষ্টা
+            // পেজ লোড হতেই অডিও প্লে
             unlockAudioContext();
 
             // ব্যাকআপ: ১ সেকেন্ড পর আবার চেষ্টা
@@ -223,12 +222,26 @@
                 audio.play().catch(e => console.log('Retry play error:', e));
             }, 1000);
 
-            // অডিও শেষ হলে পপআপ বন্ধ
+            // 2. Play Now বাটনে ক্লিক করলে - সাথে সাথে গেমে ঢুকবে
+            playBtn.addEventListener('click', function() {
+                // পপআপ বন্ধ করো
+                popup.style.animation = "popupOut .4s ease forwards";
+                setTimeout(() => {
+                    if (popup.parentNode) popup.remove();
+                }, 400);
+
+                // ০.৫ সেকেন্ড পর গেম লিংকে রিডাইরেক্ট (পপআপ বন্ধ হওয়ার জন্য সামান্য সময়)
+                setTimeout(() => {
+                    window.location.href = "https://emamulk63-design.github.io/Sheikh_Mehedi-/";
+                }, 500);
+            });
+
+            // 3. অডিও শেষ হলে পপআপ বন্ধ
             audio.addEventListener('ended', function() {
                 closePopup();
             });
 
-            // ব্যাকআপ: ২০ সেকেন্ড পর পপআপ বন্ধ (যদি অডিও না চলে)
+            // 4. ব্যাকআপ: ২০ সেকেন্ড পর পপআপ বন্ধ (যদি অডিও না চলে)
             setTimeout(function() {
                 if (popup) closePopup();
             }, 20000);

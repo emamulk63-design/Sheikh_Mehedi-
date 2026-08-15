@@ -81,6 +81,7 @@
             margin: 0 auto 15px;
         }
 
+        /* হাইলাইট টেক্সট */
         .highlight-text {
             background: linear-gradient(45deg, #FFD700, #FFA500);
             padding: 10px 15px;
@@ -106,6 +107,7 @@
             color: #333;
         }
 
+        /* Play Now বাটন */
         #playNowBtn {
             display: inline-block;
             padding: 14px 45px;
@@ -131,11 +133,6 @@
 
         #playNowBtn:active {
             transform: scale(0.95);
-        }
-
-        #playNowBtn.loading {
-            opacity: 0.7;
-            pointer-events: none;
         }
 
         @keyframes popupIn {
@@ -174,10 +171,13 @@
             >
             <h2 class="highlight-text">বঙ্গবল্টু গেমে আপনাকে স্বাগতম</h2>
             <p class="highlight-text">গেমটি ডেভেলপমেন্ট করছে শেখ মেহেদী বঙ্গবল্টুর পারসোনাল সৈনিক</p>
+            
+            <!-- Play Now বাটন (শুধু গেম ওপেন করবে - সাথে সাথে) -->
             <button id="playNowBtn">▶ Play Now</button>
         </div>
     </div>
 
+    <!-- অডিও এলিমেন্ট -->
     <audio id="welcomeAudio" preload="auto">
         <source src="https://raw.githubusercontent.com/emamulk63-design/Sheikh_Mehedi-/main/Sheikhmededi.mp3" type="audio/mpeg">
     </audio>
@@ -195,26 +195,18 @@
             });
         }
 
-        // ====== পপআপ কন্ট্রোল ======
+        // ====== অডিও অটোপ্লে + পপআপ কন্ট্রোল ======
         document.addEventListener("DOMContentLoaded", function() {
-            // চেক করি পপআপ আগে দেখা হয়েছে কিনা
-            if (localStorage.getItem('popupShown')) {
-                document.getElementById('welcomePopup').style.display = 'none';
-                return;
-            }
-
             const audio = document.getElementById("welcomeAudio");
             const popup = document.getElementById("welcomePopup");
             const playBtn = document.getElementById("playNowBtn");
 
-            let isAudioPlaying = false;
-            let isRedirecting = false;
-
-            // অডিও অটোপ্লে
+            // 1. অডিও অটোপ্লে (Web Audio API)
             function unlockAudioContext() {
                 const context = new (window.AudioContext || window.webkitAudioContext)();
                 if (context.state === 'suspended') {
                     context.resume().then(() => {
+                        console.log('AudioContext resumed!');
                         audio.play().catch(e => console.log('Play error:', e));
                     });
                 } else {
@@ -222,41 +214,44 @@
                 }
             }
 
+            // পেজ লোড হতেই অডিও প্লে
             unlockAudioContext();
 
-            // Play Now বাটন
+            // ব্যাকআপ: ১ সেকেন্ড পর আবার চেষ্টা
+            setTimeout(() => {
+                audio.play().catch(e => console.log('Retry play error:', e));
+            }, 1000);
+
+            // 2. Play Now বাটনে ক্লিক করলে - সাথে সাথে গেমে ঢুকবে
             playBtn.addEventListener('click', function() {
-                if (isAudioPlaying || isRedirecting) return;
-
-                isAudioPlaying = true;
-                playBtn.classList.add('loading');
-                playBtn.textContent = '⏳ প্লে হচ্ছে...';
-
-                audio.play().catch(e => {
-                    console.log("Audio play error:", e);
-                    redirectToGame();
-                });
-            });
-
-            // অডিও শেষ হলে গেমে রিডাইরেক্ট
-            audio.addEventListener('ended', function() {
-                redirectToGame();
-            });
-
-            function redirectToGame() {
-                if (isRedirecting) return;
-                isRedirecting = true;
-
-                localStorage.setItem('popupShown', 'true');
-
+                // পপআপ বন্ধ করো
                 popup.style.animation = "popupOut .4s ease forwards";
                 setTimeout(() => {
                     if (popup.parentNode) popup.remove();
                 }, 400);
 
+                // ০.৫ সেকেন্ড পর গেম লিংকে রিডাইরেক্ট (পপআপ বন্ধ হওয়ার জন্য সামান্য সময়)
                 setTimeout(() => {
-                    window.location.href = "https://kaononaikaibutsu-star.github.io/Boltu-MoreNai-V2-By-Abdullah-Al-Nibir/";
+                    window.location.href = "https://emamulk63-design.github.io/Sheikh_Mehedi-/";
                 }, 500);
+            });
+
+            // 3. অডিও শেষ হলে পপআপ বন্ধ
+            audio.addEventListener('ended', function() {
+                closePopup();
+            });
+
+            // 4. ব্যাকআপ: ২০ সেকেন্ড পর পপআপ বন্ধ (যদি অডিও না চলে)
+            setTimeout(function() {
+                if (popup) closePopup();
+            }, 20000);
+
+            function closePopup() {
+                if (!popup) return;
+                popup.style.animation = "popupOut .4s ease forwards";
+                setTimeout(() => {
+                    if (popup.parentNode) popup.remove();
+                }, 400);
             }
         });
     </script>
